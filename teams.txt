@@ -1,2 +1,3 @@
-Fry
-Stewart
+Example team 1
+Team 2
+Best team
