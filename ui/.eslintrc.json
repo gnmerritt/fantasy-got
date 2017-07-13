@@ -1,0 +1,17 @@
+{
+    "extends": "airbnb",
+    "env": {
+      "mocha": true
+    },
+    "plugins": [
+        "react",
+        "jsx-a11y",
+        "import"
+    ],
+    "rules": {
+      "no-console": 0,
+      "no-restricted-syntax": 0,
+      "quote-props": 0,
+      "react/no-array-index-key": 0
+    }
+}
