@@ -69,6 +69,11 @@ module.exports = {
     host: '0.0.0.0', // serve from localhost and make it externally accessible via local ip
     inline: true,
     port: 4100,
+    proxy: {
+      '/': {
+        target: 'http://localhost:5000',
+      },
+    },
   },
   plugins: devPlugins.concat([
     // corresponds to .scss loader usage of ExtractTextPlugin, takes output and puts it in build

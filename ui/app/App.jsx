@@ -1,4 +1,5 @@
 import React from 'react';
+import $ from 'jquery';
 import { fromJS, List, Record } from 'immutable';
 
 const Character = Record({
@@ -10,36 +11,64 @@ const Character = Record({
 const App = React.createClass({
   getInitialState() {
     return {
-      characters: List([
-        ['Cersei Lannister', 'The Lannisters', 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/9b/9b62abb13a73878b02616a83bf307cc4b24281db_medium.jpg'],
-        ['Jon Snow', 'The Starks', 'https://images.moviepilot.com/image/upload/c_fill,h_64,q_auto,w_64/fatkouxg383ziqkfwsos.jpg'],
-        ['Danaerys Targaeryan', 'The Targaeryans', 'http://cdn.images.express.co.uk/img/dynamic/galleries/64x64/223128.jpg'],
-      ]).map(([name, house, headshot]) => new Character({ name, house, headshot }))
-        .groupBy(({ name }) => name).map(list => list.first()),
-      teams: fromJS({
-        'nathan': [],
-        'sam': ['Cersei Lannister'],
-        'kelsey': ['Cersei Lannister', 'Jon Snow'],
-        'Undrafted': ['Danaerys Targaeryan'],
-      }).toOrderedMap().sortBy((v, k) => {
-        if (k === 'Undrafter') {
-          return -1;
-        }
-        return k;
-      }),
+      characters: false, // until loaded
+      teams: false, // until loaded
     };
+  },
+  componentDidMount() {
+    $.ajax({
+      method: 'GET',
+      url: '/characters',
+      contentType: 'application/json',
+      success: (items) => {
+        this.setState({
+          characters: List(items)
+            .map(c => new Character(c))
+            .groupBy(({ name }) => name).map(list => list.first()),
+        });
+      },
+    });
+    $.ajax({
+      method: 'GET',
+      url: '/teams',
+      contentType: 'application/json',
+      success: (items) => {
+        this.setState({
+          teams: fromJS(items),
+        });
+      },
+    });
   },
   render() {
     const { characters, teams } = this.state;
+    if (!characters || !teams) {
+      return <div />;
+    }
+    const draftedChars = teams.toList().flatMap(c => c).toSet();
+    const undraftedChars = characters.map(({ name }) => name).filter(name => !draftedChars.includes(name));
+    const teamsWithUndrafted = teams.set('Undrafted', undraftedChars)
+      .toOrderedMap()
+      .sortBy(
+        (v, k) => k,
+        (a, b) => {
+          if (a === 'Undrafted') {
+            return -1;
+          }
+          if (b === 'Undrafted') {
+            return 1;
+          }
+          return a.localeCompare(b);
+        },
+      );
     return (
       <div className="app">
         <div className="page-header">
           Fantasy Game of Thrones
         </div>
         <div className="teams-container">
-          {teams.map((cList, teamName) => {
+          {teamsWithUndrafted.map((cList, teamName) => {
             return (
-              <div className="team">
+              <div className="team" key={teamName}>
                 <div className="team-name">{teamName}</div>
                 <table className="character-list">
                   <tbody>
@@ -54,12 +83,12 @@ const App = React.createClass({
                           </td>
                         </tr>
                       );
-                    })}
+                    }).toList().toArray()}
                   </tbody>
                 </table>
               </div>
             );
-          })}
+          }).toList().toArray()}
         </div>
       </div>
     );
