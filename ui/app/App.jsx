@@ -13,6 +13,7 @@ const App = React.createClass({
     return {
       characters: false, // until loaded
       teams: false, // until loaded
+      movingCharacter: undefined, // will be character name when moving
     };
   },
   componentDidMount() {
@@ -39,11 +40,32 @@ const App = React.createClass({
       },
     });
   },
+
+  onMove(e) {
+    e.preventDefault();
+    const { movingCharacter } = this.state;
+    const teamName = this.select.value;
+    $.ajax({
+      method: 'POST',
+      url: '/pick',
+      contentType: 'application/json',
+      data: JSON.stringify({
+        'char': movingCharacter,
+        'team': teamName,
+      }),
+      success: (response) => {
+        console.log(response);
+        this.setState({ movingCharacter: undefined });
+      },
+    });
+  },
+
   render() {
-    const { characters, teams } = this.state;
+    const { movingCharacter, characters, teams } = this.state;
     if (!characters || !teams) {
       return <div />;
     }
+    const isAdmin = window.location.search.indexOf('whenandysweatsitgoesrightinhiseyes') !== -1; // eslint-disable-line no-undef
     const draftedChars = teams.toList().flatMap(c => c).toSet();
     const undraftedChars = characters.map(({ name }) => name).filter(name => !draftedChars.includes(name));
     const teamsWithUndrafted = teams.set('Undrafted', undraftedChars)
@@ -60,10 +82,29 @@ const App = React.createClass({
           return a.localeCompare(b);
         },
       );
+
+    if (movingCharacter) {
+      return (
+        <div className="move-character">
+          Move character {movingCharacter} to what team?
+          <form onSubmit={this.onMove}>
+            <select type="select" ref={(select) => { this.select = select; }}>
+              {teams.keySeq().toList().sortBy(t => t).map((teamName) => {
+                return (
+                  <option value={teamName}>{teamName}</option>
+                );
+              })}
+            </select>
+            <button type="submit">Submit</button>
+          </form>
+        </div>
+      );
+    }
+
     return (
       <div className="app">
         <div className="page-header">
-          Fantasy Game of Thrones
+          Fantasy Game of Thrones{isAdmin ? ' (Admin)' : ''}
         </div>
         <div className="teams-container">
           {teamsWithUndrafted.map((cList, teamName) => {
@@ -76,7 +117,10 @@ const App = React.createClass({
                       const { house, headshot } = characters.get(characterName);
                       return (
                         <tr key={characterName}>
-                          <td className="character-name">{characterName}</td>
+                          <td
+                            className="character-name"
+                            onClick={isAdmin ? () => this.setState({ movingCharacter: characterName }) : null}
+                          >{characterName}</td>
                           <td className="house">{house}</td>
                           <td className="headshot">
                             <img alt="loading" src={headshot} width={64} height={64} />
