@@ -16,29 +16,10 @@ const App = React.createClass({
       movingCharacter: undefined, // will be character name when moving
     };
   },
+
   componentDidMount() {
-    $.ajax({
-      method: 'GET',
-      url: '/characters',
-      contentType: 'application/json',
-      success: (items) => {
-        this.setState({
-          characters: List(items)
-            .map(c => new Character(c))
-            .groupBy(({ name }) => name).map(list => list.first()),
-        });
-      },
-    });
-    $.ajax({
-      method: 'GET',
-      url: '/teams',
-      contentType: 'application/json',
-      success: (items) => {
-        this.setState({
-          teams: fromJS(items),
-        });
-      },
-    });
+    this.fetch();
+    setInterval(this.fetch, 4000);
   },
 
   onMove(e) {
@@ -56,7 +37,30 @@ const App = React.createClass({
       success: (response) => {
         console.log(response);
         this.setState({ movingCharacter: undefined });
+        this.fetch();
       },
+    });
+  },
+
+  fetch() {
+    $.when(
+      $.ajax({
+        method: 'GET',
+        url: '/characters',
+        contentType: 'application/json',
+      }),
+      $.ajax({
+        method: 'GET',
+        url: '/teams',
+        contentType: 'application/json',
+      }),
+    ).then(([charItems], [teamItems]) => {
+      this.setState({
+        characters: List(charItems)
+          .map(c => new Character(c))
+          .groupBy(({ name }) => name).map(list => list.first()),
+        teams: fromJS(teamItems),
+      });
     });
   },
 
