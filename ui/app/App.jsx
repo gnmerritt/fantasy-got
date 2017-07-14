@@ -109,7 +109,7 @@ const App = React.createClass({
         <div className="teams-container">
           {teamsWithUndrafted.map((cList, teamName) => {
             return (
-              <div className="team" key={teamName}>
+              <div className={`team${teamName === 'Undrafted' ? ' undrafted' : ''}`} key={teamName}>
                 <div className="team-name">{teamName}</div>
                 <table className="character-list">
                   <tbody>
@@ -123,7 +123,7 @@ const App = React.createClass({
                           >{characterName}</td>
                           <td className="house">{house}</td>
                           <td className="headshot">
-                            <img alt="loading" src={headshot} width={64} height={64} />
+                            <img alt="loading" src={headshot} width={32} height={32} />
                           </td>
                         </tr>
                       );
