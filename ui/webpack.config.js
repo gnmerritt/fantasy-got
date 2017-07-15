@@ -23,7 +23,7 @@ module.exports = {
   entry: './app/main.jsx', // js entrypoint
   output: { // configuration for webpack output / build directory
     path: path.resolve(__dirname, 'build/'), // define build directory
-    publicPath: '/', // webpack-dev-server uses this to determine where output files are expected to be served from
+    publicPath: '/static/', // webpack-dev-server uses this to determine where output files are expected to be served from
     filename: '[hash].js', // name of js output. [hash] tells webpack to name it a fingerprint of its contents
   },
   module: { // options affecting the normal modules
@@ -80,7 +80,7 @@ module.exports = {
     // directory with a fingerprinted name
     new ExtractTextPlugin('[hash].css'),
     new HtmlWebpackPlugin({ // autogenerates an index.html with the following parameters
-      title: 'Issue Tracker',
+      title: 'League of Game of Thrones',
       // TODO add this favicon
       // favicon: 'app/favicon.png'
     }),

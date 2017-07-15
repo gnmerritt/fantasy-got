@@ -1,14 +1,19 @@
 import csv
 import jsonpickle
 from flask import Flask, jsonify, request
-app = Flask(__name__)
+app = Flask(__name__, static_folder='ui/build')
 
 STATE = 'state.pickle'
 
 
 @app.route('/')
 def index():
-    return 'Hello, World!'
+    return app.send_static_file('index.html')
+
+
+@app.route('/static/<path:path>')
+def assets(path):
+    return app.send_static_file(path)
 
 
 def read_teams():
