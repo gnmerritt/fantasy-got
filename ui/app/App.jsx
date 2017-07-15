@@ -69,6 +69,25 @@ const App = React.createClass({
     });
   },
 
+  renderMoveDialog(teams, movingCharacter) {
+    return (
+      <tr className="move-character">
+        Move character {movingCharacter} to what team?
+        <form onSubmit={this.onMove}>
+          <select type="select" ref={(select) => { this.select = select; }}>
+            {teams.keySeq().toList().sortBy(t => t).map((teamName) => {
+              return (
+                <option value={teamName}>{teamName}</option>
+              );
+            })}
+          </select>
+          <button type="submit">Submit</button>
+          <button onClick={this.onCancel}>Cancel</button>
+        </form>
+      </tr>
+    );
+  },
+
   render() {
     const { movingCharacter, characters, teams } = this.state;
     if (!characters || !teams) {
@@ -92,25 +111,6 @@ const App = React.createClass({
         },
       );
 
-    if (movingCharacter) {
-      return (
-        <div className="move-character">
-          Move character {movingCharacter} to what team?
-          <form onSubmit={this.onMove}>
-            <select type="select" ref={(select) => { this.select = select; }}>
-              {teams.keySeq().toList().sortBy(t => t).map((teamName) => {
-                return (
-                  <option value={teamName}>{teamName}</option>
-                );
-              })}
-            </select>
-            <button type="submit">Submit</button>
-            <button onClick={this.onCancel}>Cancel</button>
-          </form>
-        </div>
-      );
-    }
-
     const appClass = 'app' + (isAdmin ? ' admin' : ''); // eslint-disable-line prefer-template
 
     return (
@@ -127,17 +127,21 @@ const App = React.createClass({
                   <tbody>
                     {cList.map((characterName) => {
                       const { house, headshot } = characters.get(characterName);
+                      const movingDialog = (characterName === movingCharacter) ? this.renderMoveDialog(teams, characterName) : null;
                       return (
-                        <tr key={characterName}>
-                          <td
-                            className="character-name"
-                            onClick={isAdmin ? () => this.setState({ movingCharacter: characterName }) : null}
-                          >{characterName}</td>
-                          <td className="house">{house}</td>
-                          <td className="headshot">
-                            <img alt="loading" src={headshot} width={32} height={32} />
-                          </td>
-                        </tr>
+                        <tbody>
+                          <tr key={characterName}>
+                            <td
+                              className="character-name"
+                              onClick={isAdmin ? () => this.setState({ movingCharacter: characterName }) : null}
+                            >{characterName}</td>
+                            <td className="house">{house}</td>
+                            <td className="headshot">
+                              <img alt="loading" src={headshot} width={32} height={32} />
+                            </td>
+                          </tr>
+                          {movingDialog}
+                        </tbody>
                       );
                     }).toList().toArray()}
                   </tbody>
