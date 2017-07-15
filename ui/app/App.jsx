@@ -42,6 +42,11 @@ const App = React.createClass({
     });
   },
 
+  onCancel() {
+    this.setState({ movingCharacter: undefined });
+    this.fetch();
+  },
+
   fetch() {
     $.when(
       $.ajax({
@@ -100,13 +105,16 @@ const App = React.createClass({
               })}
             </select>
             <button type="submit">Submit</button>
+            <button onClick={this.onCancel}>Cancel</button>
           </form>
         </div>
       );
     }
 
+    const appClass = 'app' + (isAdmin ? ' admin' : ''); // eslint-disable-line prefer-template
+
     return (
-      <div className="app">
+      <div className={appClass}>
         <div className="page-header">
           Fantasy Game of Thrones{isAdmin ? ' (Admin)' : ''}
         </div>

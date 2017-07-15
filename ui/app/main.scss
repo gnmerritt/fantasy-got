@@ -49,3 +49,8 @@ body {
   margin: 10px;
   padding: 5px;
 }
+
+.admin .undrafted .character-name {
+  text-decoration: underline;
+  cursor: pointer;
+}

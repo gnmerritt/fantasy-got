@@ -64,7 +64,7 @@ module.exports = {
   },
   devServer: { // common configuration for webpack-dev-server, to be overridden / appended to
     contentBase: 'build/', // serve from build/ directory
-    publicPath: '/',
+    publicPath: '/static/',
     stats: 'minimal', // minimal console output
     host: '0.0.0.0', // serve from localhost and make it externally accessible via local ip
     inline: true,
