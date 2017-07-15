@@ -3878,7 +3878,7 @@ mute-stream@0.0.5:
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.5.tgz#8fbfabb0a98a253d3184331f9e8deb7372fac6c0"
 
-nan@^2.3.0, nan@^2.3.2:
+nan@^2.3.0, nan@^2.3.2, nan@^2.5.1:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.6.2.tgz#e4ff34e6c95fdfb5aecc08de6596f43605a7db45"
 
@@ -3993,7 +3993,7 @@ node-libs-browser@^2.0.0:
     util "^0.10.3"
     vm-browserify "0.0.4"
 
-node-pre-gyp@^0.6.36, node-pre-gyp@^0.6.5:
+node-pre-gyp@^0.6.34, node-pre-gyp@^0.6.36, node-pre-gyp@^0.6.5:
   version "0.6.36"
   resolved "https://registry.yarnpkg.com/node-pre-gyp/-/node-pre-gyp-0.6.36.tgz#db604112cb74e0d477554e9b505b17abddfab786"
   dependencies:
@@ -5930,12 +5930,12 @@ v8-debug@~0.7.1:
     nan "^2.3.2"
     node-pre-gyp "^0.6.5"
 
-v8-profiler@~5.6.0:
-  version "5.6.5"
-  resolved "https://registry.yarnpkg.com/v8-profiler/-/v8-profiler-5.6.5.tgz#8b22e6ff3b76a1c75b1d53fd18d58e3f0a46f5be"
+v8-profiler@^5.7.0, v8-profiler@~5.7.0:
+  version "5.7.0"
+  resolved "https://registry.yarnpkg.com/v8-profiler/-/v8-profiler-5.7.0.tgz#e8381cbebb5b5fd0ca8d2b09f6a0181a158db34d"
   dependencies:
-    nan "^2.3.2"
-    node-pre-gyp "^0.6.5"
+    nan "^2.5.1"
+    node-pre-gyp "^0.6.34"
 
 validate-npm-package-license@^3.0.1:
   version "3.0.1"
