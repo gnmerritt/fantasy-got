@@ -76,13 +76,19 @@ const App = React.createClass({
       }),
     ).then(([charItems], [teamItems]) => {
       const teams = fromJS(teamItems);
+      const smallestTeamSize = teams.minBy(picks => picks.size).size;
+      // snake draft:
+      // when the smallest team has an even # of players we are drafting forward
+      // and we want the first from the front with fewer players. otherwise
+      // we're going backwards, so we want the first from the back
+      const ordering = (smallestTeamSize % 2 === 0) ? teams : teams.reverse();
       this.setState({
         characters: List(charItems)
           .map(c => new Character(c))
           .groupBy(({ name }) => name).map(list => list.first()),
         teams,
-        // TODO: snake draft is going to be more complicated...
-        pickingTeam: teams.keyOf(teams.minBy(picks => picks.size)),
+        // the name of the smallest team in whichever direction we're going
+        pickingTeam: teams.keyOf(ordering.minBy(picks => picks.size)),
       });
     });
   },
