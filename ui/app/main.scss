@@ -54,9 +54,16 @@ body {
   }
 }
 
-.admin .undrafted .character-name {
-  text-decoration: underline;
-  cursor: pointer;
+// Clickable things
+.admin {
+  .undrafted .character-name, .undo {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .undo {
+    color: red;
+  }
 }
 
 .move-character {

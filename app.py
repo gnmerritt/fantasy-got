@@ -74,6 +74,23 @@ def pick_char():
     return "Drafting {} to {}".format(char, team), 200
 
 
+@app.route('/unpick', methods=['POST'])
+def unpick_char():
+    if not request.json:
+        return 'No JSON body found', 400
+    character_names = [n['name'] for n in read_chars()]
+    char = request.json['char']
+    if char not in character_names:
+        print(character_names)
+        return "Character '{}' not found".format(char), 404
+    state = read_state()
+    for t, picked in state.items():
+        if char in picked:
+            picked.remove(char)
+    save_state(state)
+    return "Character '{}' no longer on a team".format(char), 200
+
+
 if __name__ == "__main__":
     print("Resetting game state at " + STATE)
     teams = read_teams()

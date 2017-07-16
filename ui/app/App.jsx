@@ -45,6 +45,18 @@ const App = React.createClass({
     });
   },
 
+  onUndraft(characterName) {
+    $.ajax({
+      method: 'POST',
+      url: '/unpick',
+      contentType: 'application/json',
+      data: JSON.stringify({
+        'char': characterName,
+      }),
+      success: () => this.fetch(),
+    });
+  },
+
   onCancel() {
     this.setState({ movingCharacter: undefined });
     this.fetch();
@@ -127,7 +139,8 @@ const App = React.createClass({
         </div>
         <div className="teams-container">
           {teamsWithUndrafted.map((cList, teamName) => {
-            let className = `team${teamName === UNDRAFTED ? ' undrafted' : ''}`;
+            const undrafted = teamName === UNDRAFTED;
+            let className = `team${undrafted ? ' undrafted' : ''}`;
             if (teamName === pickingTeam) className += ' picking';
             return (
               <div className={className} key={teamName}>
@@ -137,7 +150,8 @@ const App = React.createClass({
                     {cList.map((characterName) => {
                       const { house, headshot } = characters.get(characterName);
                       const movingDialog = (characterName === movingCharacter) ? this.renderMoveDialog(characterName) : null;
-                      const canDraft = isAdmin && teamName === UNDRAFTED;
+                      const canDraft = isAdmin && undrafted;
+                      const canRemove = isAdmin && !undrafted;
                       return (
                         <tbody>
                           <tr key={characterName}>
@@ -149,6 +163,10 @@ const App = React.createClass({
                             <td className="headshot">
                               <img alt="loading" src={headshot} width={32} height={32} />
                             </td>
+                            {canRemove
+                              ? <td className="undo" onClick={() => this.onUndraft(characterName)}>UNDO</td>
+                              : null
+                            }
                           </tr>
                           {movingDialog}
                         </tbody>
