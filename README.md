@@ -1,7 +1,15 @@
 # fantasy-got
-fantasy game of thrones
+fantasy game of thrones drafting setInterval
 
-## usage
+## what
+
+hosts a snake draft of GoT characters with one admin who can assign chars to teams.
+
+it looks like this:
+
+![screenshot](screenshot.png)
+
+## how
 
 need: python 3, pip, yarn
 
@@ -21,3 +29,5 @@ python -m flask run
 # OR run flask visible on 0.0.0.0
 python app.py
 ```
+
+all state lives in the `state.pickle` file, delete it if you mess things up.
