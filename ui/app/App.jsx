@@ -23,6 +23,7 @@ const App = React.createClass({
   },
 
   componentDidMount() {
+    this.fetchCharacters();
     this.fetch();
     setInterval(this.fetch, 4000);
   },
@@ -64,34 +65,40 @@ const App = React.createClass({
     this.fetch();
   },
 
+  fetchCharacters() {
+    $.ajax({
+      method: 'GET',
+      url: '/characters',
+      contentType: 'application/json',
+      success: (charItems) => {
+        this.setState({
+          characters: List(charItems)
+            .map(c => new Character(c))
+            .groupBy(({ name }) => name).map(list => list.first()),
+        });
+      },
+    });
+  },
+
   fetch() {
-    $.when(
-      $.ajax({
-        method: 'GET',
-        url: '/characters',
-        contentType: 'application/json',
-      }),
-      $.ajax({
-        method: 'GET',
-        url: '/teams',
-        contentType: 'application/json',
-      }),
-    ).then(([charItems], [teamItems]) => {
-      const teams = fromJS(teamItems);
-      const smallestTeamSize = teams.map(teamSize).min();
-      // snake draft:
-      // when the smallest team has an even # of players we are drafting forward
-      // and we want the first from the front with fewer players. otherwise
-      // we're going backwards, so we want the first from the back
-      const ordering = (smallestTeamSize % 2 === 0) ? teams : teams.reverse();
-      this.setState({
-        characters: List(charItems)
-          .map(c => new Character(c))
-          .groupBy(({ name }) => name).map(list => list.first()),
-        teams,
-        // the name of the smallest team in whichever direction we're going
-        pickingTeam: ordering.minBy(teamSize).get('name'),
-      });
+    $.ajax({
+      method: 'GET',
+      url: '/teams',
+      contentType: 'application/json',
+      success: (teamItems) => {
+        const teams = fromJS(teamItems);
+        const smallestTeamSize = teams.map(teamSize).min();
+        // snake draft:
+        // when the smallest team has an even # of players we are drafting forward
+        // and we want the first from the front with fewer players. otherwise
+        // we're going backwards, so we want the first from the back
+        const ordering = (smallestTeamSize % 2 === 0) ? teams : teams.reverse();
+        this.setState({
+          teams,
+          // the name of the smallest team in whichever direction we're going
+          pickingTeam: ordering.minBy(teamSize).get('name'),
+        });
+      },
     });
   },
 
@@ -141,14 +148,14 @@ const App = React.createClass({
               return (
                 <tbody>
                   <tr key={characterName}>
+                    <td className="headshot">
+                      <img alt="loading" src={headshot} width={48} height={48} />
+                    </td>
                     <td
                       className="character-name"
                       onClick={canDraft ? () => this.setState({ movingCharacter: characterName }) : null}
                     >{characterName}</td>
                     <td className="house">{house}</td>
-                    <td className="headshot">
-                      <img alt="loading" src={headshot} width={32} height={32} />
-                    </td>
                     {canRemove
                       ? <td className="undo" onClick={() => this.onUndraft(characterName)}>UNDO</td>
                       : null
