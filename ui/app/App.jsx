@@ -10,6 +10,8 @@ const Character = Record({
 
 const UNDRAFTED = 'Undrafted';
 
+const teamSize = (t) => t.get('chars').size;
+
 const App = React.createClass({
   getInitialState() {
     return {
@@ -76,7 +78,7 @@ const App = React.createClass({
       }),
     ).then(([charItems], [teamItems]) => {
       const teams = fromJS(teamItems);
-      const smallestTeamSize = teams.minBy(picks => picks.size).size;
+      const smallestTeamSize = teams.map(teamSize).min();
       // snake draft:
       // when the smallest team has an even # of players we are drafting forward
       // and we want the first from the front with fewer players. otherwise
@@ -88,7 +90,7 @@ const App = React.createClass({
           .groupBy(({ name }) => name).map(list => list.first()),
         teams,
         // the name of the smallest team in whichever direction we're going
-        pickingTeam: teams.keyOf(ordering.minBy(picks => picks.size)),
+        pickingTeam: ordering.minBy(teamSize).get('name'),
       });
     });
   },
@@ -100,7 +102,7 @@ const App = React.createClass({
         Move character {movingCharacter} to what team?
         <form onSubmit={this.onMove}>
           <select type="select" ref={(select) => { this.select = select; }}>
-            {teams.keySeq().toList().sortBy(t => t).map((teamName) => {
+            {teams.map(t => t.get('name')).map((teamName) => {
               return (
                 <option value={teamName} selected={pickingTeam === teamName}>{teamName}</option>
               );
@@ -119,22 +121,9 @@ const App = React.createClass({
       return <div />;
     }
     const isAdmin = window.location.search.indexOf('whenandysweatsitgoesrightinhiseyes') !== -1; // eslint-disable-line no-undef
-    const draftedChars = teams.toList().flatMap(c => c).toSet();
+    const draftedChars = teams.map(t => t.get('chars')).flatMap(c => c).toSet();
     const undraftedChars = characters.map(({ name }) => name).filter(name => !draftedChars.includes(name));
-    const teamsWithUndrafted = teams.set('Undrafted', undraftedChars)
-      .toOrderedMap()
-      .sortBy(
-        (v, k) => k,
-        (a, b) => {
-          if (a === UNDRAFTED) {
-            return -1;
-          }
-          if (b === UNDRAFTED) {
-            return 1;
-          }
-          return a.localeCompare(b);
-        },
-      );
+    const teamsWithUndrafted = teams.unshift(fromJS({ name: 'Undrafted', chars: undraftedChars }));
 
     const appClass = 'app' + (isAdmin ? ' admin' : ''); // eslint-disable-line prefer-template
 
@@ -144,16 +133,19 @@ const App = React.createClass({
           Fantasy Game of Thrones{isAdmin ? ' (Admin)' : ''}
         </div>
         <div className="teams-container">
-          {teamsWithUndrafted.map((cList, teamName) => {
+          {teamsWithUndrafted.map((team) => {
+            const chars = team.get('chars');
+            const teamName = team.get('name');
             const undrafted = teamName === UNDRAFTED;
-            let className = `team${undrafted ? ' undrafted' : ''}`;
+            let className = 'team';
+            if (undrafted) className += ' undrafted';
             if (teamName === pickingTeam) className += ' picking';
             return (
               <div className={className} key={teamName}>
                 <div className="team-name">{teamName}</div>
                 <table className="character-list">
                   <tbody>
-                    {cList.map((characterName) => {
+                    {chars.map((characterName) => {
                       const { house, headshot } = characters.get(characterName);
                       const movingDialog = (characterName === movingCharacter) ? this.renderMoveDialog(characterName) : null;
                       const canDraft = isAdmin && undrafted;

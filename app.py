@@ -47,7 +47,9 @@ def reset_state():
 def game_info():
     state = read_state()
     teams = read_teams()
-    return jsonify({t: state.get(t, []) for t in teams})
+    return jsonify([
+        {'name': t, 'chars': state.get(t, [])} for t in teams
+    ])
 
 
 def read_chars():
