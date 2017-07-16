@@ -10,7 +10,7 @@ const Character = Record({
 
 const UNDRAFTED = 'Undrafted';
 
-const teamSize = (t) => t.get('chars').size;
+const teamSize = t => t.get('chars').size;
 
 const App = React.createClass({
   getInitialState() {
@@ -95,6 +95,10 @@ const App = React.createClass({
     });
   },
 
+  isAdmin() {
+    return window.location.search.indexOf('whenandysweatsitgoesrightinhiseyes') !== -1; // eslint-disable-line no-undef
+  },
+
   renderMoveDialog(movingCharacter) {
     const { teams, pickingTeam } = this.state;
     return (
@@ -115,66 +119,74 @@ const App = React.createClass({
     );
   },
 
+  renderTeam(team) {
+    const { movingCharacter, characters, pickingTeam } = this.state;
+    const chars = team.get('chars');
+    const teamName = team.get('name');
+    const undrafted = teamName === UNDRAFTED;
+    let className = 'team';
+    if (undrafted) className += ' undrafted';
+    if (teamName === pickingTeam) className += ' picking';
+
+    return (
+      <div className={className} key={teamName}>
+        <div className="team-name">{teamName}</div>
+        <table className="character-list">
+          <tbody>
+            {chars.map((characterName) => {
+              const { house, headshot } = characters.get(characterName);
+              const movingDialog = (characterName === movingCharacter) ? this.renderMoveDialog(characterName) : null;
+              const canDraft = this.isAdmin() && undrafted;
+              const canRemove = this.isAdmin() && !undrafted;
+              return (
+                <tbody>
+                  <tr key={characterName}>
+                    <td
+                      className="character-name"
+                      onClick={canDraft ? () => this.setState({ movingCharacter: characterName }) : null}
+                    >{characterName}</td>
+                    <td className="house">{house}</td>
+                    <td className="headshot">
+                      <img alt="loading" src={headshot} width={32} height={32} />
+                    </td>
+                    {canRemove
+                      ? <td className="undo" onClick={() => this.onUndraft(characterName)}>UNDO</td>
+                      : null
+                    }
+                  </tr>
+                  {movingDialog}
+                </tbody>
+              );
+            }).toList().toArray()}
+          </tbody>
+        </table>
+      </div>
+    );
+  },
+
   render() {
-    const { movingCharacter, characters, teams, pickingTeam } = this.state;
+    const { characters, teams } = this.state;
     if (!characters || !teams) {
       return <div />;
     }
-    const isAdmin = window.location.search.indexOf('whenandysweatsitgoesrightinhiseyes') !== -1; // eslint-disable-line no-undef
     const draftedChars = teams.map(t => t.get('chars')).flatMap(c => c).toSet();
     const undraftedChars = characters.map(({ name }) => name).filter(name => !draftedChars.includes(name));
-    const teamsWithUndrafted = teams.unshift(fromJS({ name: 'Undrafted', chars: undraftedChars }));
+    const undrafted = fromJS({ name: 'Undrafted', chars: undraftedChars });
 
-    const appClass = 'app' + (isAdmin ? ' admin' : ''); // eslint-disable-line prefer-template
+    const appClass = 'app' + (this.isAdmin() ? ' admin' : ''); // eslint-disable-line prefer-template
 
     return (
       <div className={appClass}>
         <div className="page-header">
-          Fantasy Game of Thrones{isAdmin ? ' (Admin)' : ''}
+          Fantasy Game of Thrones{this.isAdmin() ? ' (Admin)' : ''}
         </div>
-        <div className="teams-container">
-          {teamsWithUndrafted.map((team) => {
-            const chars = team.get('chars');
-            const teamName = team.get('name');
-            const undrafted = teamName === UNDRAFTED;
-            let className = 'team';
-            if (undrafted) className += ' undrafted';
-            if (teamName === pickingTeam) className += ' picking';
-            return (
-              <div className={className} key={teamName}>
-                <div className="team-name">{teamName}</div>
-                <table className="character-list">
-                  <tbody>
-                    {chars.map((characterName) => {
-                      const { house, headshot } = characters.get(characterName);
-                      const movingDialog = (characterName === movingCharacter) ? this.renderMoveDialog(characterName) : null;
-                      const canDraft = isAdmin && undrafted;
-                      const canRemove = isAdmin && !undrafted;
-                      return (
-                        <tbody>
-                          <tr key={characterName}>
-                            <td
-                              className="character-name"
-                              onClick={canDraft ? () => this.setState({ movingCharacter: characterName }) : null}
-                            >{characterName}</td>
-                            <td className="house">{house}</td>
-                            <td className="headshot">
-                              <img alt="loading" src={headshot} width={32} height={32} />
-                            </td>
-                            {canRemove
-                              ? <td className="undo" onClick={() => this.onUndraft(characterName)}>UNDO</td>
-                              : null
-                            }
-                          </tr>
-                          {movingDialog}
-                        </tbody>
-                      );
-                    }).toList().toArray()}
-                  </tbody>
-                </table>
-              </div>
-            );
-          }).toList().toArray()}
+        <div className="game-grid">
+          <div className="teams-container undrafted-container">
+            {this.renderTeam(undrafted)}
+          </div>
+          <div className="teams-container players">
+            {teams.map(team => this.renderTeam(team)).toArray()}
+          </div>
         </div>
       </div>
     );
