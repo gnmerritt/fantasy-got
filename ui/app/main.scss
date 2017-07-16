@@ -48,6 +48,10 @@ body {
   overflow-y: auto;
   margin: 10px;
   padding: 5px;
+
+  &.picking {
+    background-color: #39FF14;
+  }
 }
 
 .admin .undrafted .character-name {

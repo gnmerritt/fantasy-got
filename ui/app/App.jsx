@@ -8,12 +8,15 @@ const Character = Record({
   'headshot': undefined,
 });
 
+const UNDRAFTED = 'Undrafted';
+
 const App = React.createClass({
   getInitialState() {
     return {
       characters: false, // until loaded
       teams: false, // until loaded
       movingCharacter: undefined, // will be character name when moving
+      pickingTeam: undefined, // until loaded
     };
   },
 
@@ -60,16 +63,20 @@ const App = React.createClass({
         contentType: 'application/json',
       }),
     ).then(([charItems], [teamItems]) => {
+      const teams = fromJS(teamItems);
       this.setState({
         characters: List(charItems)
           .map(c => new Character(c))
           .groupBy(({ name }) => name).map(list => list.first()),
-        teams: fromJS(teamItems),
+        teams,
+        // TODO: snake draft is going to be more complicated...
+        pickingTeam: teams.keyOf(teams.minBy(picks => picks.size)),
       });
     });
   },
 
-  renderMoveDialog(teams, movingCharacter) {
+  renderMoveDialog(movingCharacter) {
+    const { teams, pickingTeam } = this.state;
     return (
       <tr className="move-character">
         Move character {movingCharacter} to what team?
@@ -77,7 +84,7 @@ const App = React.createClass({
           <select type="select" ref={(select) => { this.select = select; }}>
             {teams.keySeq().toList().sortBy(t => t).map((teamName) => {
               return (
-                <option value={teamName}>{teamName}</option>
+                <option value={teamName} selected={pickingTeam === teamName}>{teamName}</option>
               );
             })}
           </select>
@@ -89,7 +96,7 @@ const App = React.createClass({
   },
 
   render() {
-    const { movingCharacter, characters, teams } = this.state;
+    const { movingCharacter, characters, teams, pickingTeam } = this.state;
     if (!characters || !teams) {
       return <div />;
     }
@@ -101,10 +108,10 @@ const App = React.createClass({
       .sortBy(
         (v, k) => k,
         (a, b) => {
-          if (a === 'Undrafted') {
+          if (a === UNDRAFTED) {
             return -1;
           }
-          if (b === 'Undrafted') {
+          if (b === UNDRAFTED) {
             return 1;
           }
           return a.localeCompare(b);
@@ -120,20 +127,23 @@ const App = React.createClass({
         </div>
         <div className="teams-container">
           {teamsWithUndrafted.map((cList, teamName) => {
+            let className = `team${teamName === UNDRAFTED ? ' undrafted' : ''}`;
+            if (teamName === pickingTeam) className += ' picking';
             return (
-              <div className={`team${teamName === 'Undrafted' ? ' undrafted' : ''}`} key={teamName}>
+              <div className={className} key={teamName}>
                 <div className="team-name">{teamName}</div>
                 <table className="character-list">
                   <tbody>
                     {cList.map((characterName) => {
                       const { house, headshot } = characters.get(characterName);
-                      const movingDialog = (characterName === movingCharacter) ? this.renderMoveDialog(teams, characterName) : null;
+                      const movingDialog = (characterName === movingCharacter) ? this.renderMoveDialog(characterName) : null;
+                      const canDraft = isAdmin && teamName === UNDRAFTED;
                       return (
                         <tbody>
                           <tr key={characterName}>
                             <td
                               className="character-name"
-                              onClick={isAdmin ? () => this.setState({ movingCharacter: characterName }) : null}
+                              onClick={canDraft ? () => this.setState({ movingCharacter: characterName }) : null}
                             >{characterName}</td>
                             <td className="house">{house}</td>
                             <td className="headshot">
