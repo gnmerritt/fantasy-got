@@ -1,5 +1,6 @@
 import csv
 import jsonpickle
+import os.path
 from flask import Flask, jsonify, request
 app = Flask(__name__, static_folder='ui/build')
 
@@ -23,6 +24,8 @@ def read_teams():
 
 
 def read_state():
+    if not os.path.exists(STATE):
+        reset_state()
     with open(STATE) as state:
         return jsonpickle.decode(state.read())
 
@@ -31,6 +34,13 @@ def save_state(state):
     frozen = jsonpickle.encode(state)
     with open(STATE, 'w') as out:
         out.write(frozen)
+
+
+def reset_state():
+    print("Resetting game state at " + STATE)
+    teams = read_teams()
+    undrafted = {t: [] for t in teams}
+    save_state(undrafted)
 
 
 @app.route('/teams')
@@ -69,7 +79,9 @@ def pick_char():
         if char in picked:
             return "{} already on {}".format(char, t), 400
 
-    state[team].append(char)
+    picks = state.get(team, [])
+    picks.append(char)
+    state[team] = picks
     save_state(state)
     return "Drafting {} to {}".format(char, team), 200
 
@@ -92,7 +104,4 @@ def unpick_char():
 
 
 if __name__ == "__main__":
-    print("Resetting game state at " + STATE)
-    teams = read_teams()
-    undrafted = {t: [] for t in teams}
-    save_state(undrafted)
+    reset_state()
